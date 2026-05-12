@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutGrid, Plus, Search } from "lucide-react";
+import { LayoutGrid, Plus, Search, Sparkles } from "lucide-react";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectDetailModal } from "@/components/projects/ProjectDetailModal";
 import { NewProjectForm } from "@/components/projects/NewProjectForm";
-import { initialProjects, type Project, type ProjectStatus } from "@/lib/projects-data";
+import { initialProjects, type Project } from "@/lib/projects-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,94 +21,63 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const FILTERS: ("All" | ProjectStatus)[] = [
-  "All",
-  "Completed",
-  "In Progress",
-  "Planned",
-];
-
 function Index() {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const [selected, setSelected] = useState<Project | null>(null);
   const [creating, setCreating] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return projects.filter((p) => {
-      const matchesFilter = filter === "All" || p.status === filter;
-      if (!matchesFilter) return false;
-      if (!q) return true;
-      return (
+    if (!q) return projects;
+    return projects.filter(
+      (p) =>
         p.projectName.toLowerCase().includes(q) ||
         p.client.toLowerCase().includes(q) ||
-        p.techStack.some((t) => t.toLowerCase().includes(q))
-      );
-    });
-  }, [projects, query, filter]);
+        p.industry.toLowerCase().includes(q) ||
+        p.country.toLowerCase().includes(q) ||
+        p.techStack.some((t) => t.toLowerCase().includes(q)),
+    );
+  }, [projects, query]);
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB]">
+    <main className="min-h-screen">
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
         <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-3 py-1 text-xs font-medium text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-3 py-1 text-xs font-medium text-violet-700 shadow-[0_1px_2px_rgba(76,29,149,0.08)] backdrop-blur">
               <LayoutGrid className="h-3.5 w-3.5" />
               Project Vault
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+            <h1 className="mt-4 bg-gradient-to-r from-violet-700 via-fuchsia-600 to-rose-500 bg-clip-text text-3xl font-semibold tracking-tight text-transparent sm:text-4xl">
               Projects & Success Stories
             </h1>
             <p className="mt-2 max-w-xl text-sm text-gray-500">
-              Replace the spreadsheet. Find any project in seconds and generate
-              clean copy for your website CMS.
+              Replace the spreadsheet. Find any project in seconds and craft
+              polished copy for your website CMS.
             </p>
           </div>
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={() => setCreating(true)}
-            className="inline-flex items-center gap-1.5 self-start rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800"
+            className="inline-flex items-center gap-1.5 self-start rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/30 transition hover:from-violet-700 hover:to-fuchsia-700"
           >
             <Plus className="h-4 w-4" /> New project
           </motion.button>
         </header>
 
-        <div className="mt-10 flex flex-col gap-3">
+        <div className="mt-10">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-400" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by project, client, or tech stack…"
-              className="w-full rounded-2xl border border-[#E5E7EB] bg-white py-3.5 pl-11 pr-4 text-sm shadow-[0_1px_2px_rgba(16,24,40,0.04)] outline-none placeholder:text-gray-400 focus:border-gray-400"
+              placeholder="Search by project, client, industry, country or tech…"
+              className="w-full rounded-2xl border border-violet-100 bg-white/80 py-3.5 pl-11 pr-4 text-sm shadow-[0_1px_2px_rgba(76,29,149,0.06)] outline-none backdrop-blur placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
             />
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            {FILTERS.map((f) => {
-              const active = filter === f;
-              return (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`relative rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-                    active ? "text-white" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="filter-pill"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                      className="absolute inset-0 rounded-full bg-gray-900"
-                    />
-                  )}
-                  <span className="relative">{f}</span>
-                </button>
-              );
-            })}
-            <span className="ml-auto self-center text-xs text-gray-400">
+          <div className="mt-3 flex items-center justify-end">
+            <span className="text-xs text-gray-400">
               {filtered.length} {filtered.length === 1 ? "result" : "results"}
             </span>
           </div>
@@ -116,7 +85,7 @@ function Index() {
 
         <motion.div
           layout
-          className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           <AnimatePresence mode="popLayout">
             {filtered.map((p, i) => (
@@ -140,8 +109,20 @@ function Index() {
         </motion.div>
 
         {filtered.length === 0 && (
-          <div className="mt-16 rounded-2xl border border-dashed border-[#E5E7EB] bg-white py-16 text-center">
-            <p className="text-sm text-gray-500">No projects match your filters.</p>
+          <div className="mt-10 rounded-2xl border border-dashed border-violet-200 bg-white/60 py-16 text-center backdrop-blur">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-violet-600">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <p className="mt-4 text-sm font-medium text-gray-700">
+              {projects.length === 0
+                ? "No projects yet"
+                : "No projects match your search"}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {projects.length === 0
+                ? "Click “New project” to add your first success story."
+                : "Try a different keyword."}
+            </p>
           </div>
         )}
       </div>
