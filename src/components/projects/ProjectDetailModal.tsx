@@ -1,30 +1,67 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, X } from "lucide-react";
+import {
+  Check,
+  Clock,
+  Copy,
+  ExternalLink,
+  Flag,
+  Globe,
+  Layers,
+  X,
+} from "lucide-react";
 import { type Project, buildSuccessStory } from "@/lib/projects-data";
 
-const statusStyles: Record<string, string> = {
-  Completed: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
-  "In Progress": "bg-sky-50 text-sky-700 ring-1 ring-sky-100",
-  Planned: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
-};
-
-function Section({ title, items }: { title: string; items: string[] }) {
+function TagSection({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-violet-500">
         {title}
       </h4>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {items.map((it) => (
           <span
             key={it}
-            className="rounded-md bg-gray-50 px-2.5 py-1 text-sm text-gray-700 ring-1 ring-inset ring-gray-200"
+            className="rounded-md bg-violet-50 px-2.5 py-1 text-sm text-violet-700 ring-1 ring-inset ring-violet-100"
           >
             {it}
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+function TextSection({ title, body }: { title: string; body: string }) {
+  if (!body) return null;
+  return (
+    <div>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-violet-500">
+        {title}
+      </h4>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+        {body}
+      </p>
+    </div>
+  );
+}
+
+function MetaPill({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value?: string;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-2 rounded-xl bg-violet-50/60 px-3 py-2 text-sm ring-1 ring-violet-100">
+      <Icon className="h-3.5 w-3.5 text-violet-600" />
+      <span className="text-gray-500">{label}:</span>
+      <span className="font-medium text-gray-800">{value}</span>
     </div>
   );
 }
@@ -52,7 +89,7 @@ export function ProjectDetailModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-gray-900/30 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-violet-950/30 p-0 backdrop-blur-sm sm:items-center sm:p-6"
           onClick={onClose}
         >
           <motion.div
@@ -63,47 +100,61 @@ export function ProjectDetailModal({
             className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-[#E5E7EB] bg-white/90 px-7 py-5 backdrop-blur">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-violet-100 bg-gradient-to-r from-violet-50/80 via-white to-pink-50/60 px-7 py-5 backdrop-blur">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-violet-600">
                   {project.client}
                 </p>
                 <h2 className="mt-0.5 text-2xl font-semibold text-gray-900">
                   {project.projectName}
                 </h2>
-                <span
-                  className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}
-                >
-                  {project.status}
-                </span>
+                {project.projectLink && (
+                  <a
+                    href={project.projectLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-800"
+                  >
+                    Visit project <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
               </div>
               <button
                 onClick={onClose}
-                className="rounded-full p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-full p-1.5 text-gray-400 transition hover:bg-violet-100 hover:text-violet-700"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-6 px-7 py-6">
-              <Section title="Services" items={project.services} />
-              <Section title="Tech Stack" items={project.techStack} />
-              <Section title="Deliverables" items={project.deliverables} />
+              <div className="flex flex-wrap gap-2">
+                <MetaPill icon={Flag} label="Country" value={project.country} />
+                <MetaPill icon={Layers} label="Industry" value={project.industry} />
+                <MetaPill icon={Globe} label="Domain" value={project.domain} />
+                <MetaPill icon={Clock} label="Duration" value={project.timeDuration} />
+              </div>
 
-              <div className="rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+              <TextSection title="Challenges" body={project.challenges} />
+              <TagSection title="Services" items={project.services} />
+              <TagSection title="Tech Stack" items={project.techStack} />
+              <TagSection title="Deliverables" items={project.deliverables} />
+              <TextSection title="Conclusion" body={project.conclusion} />
+
+              <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/70 to-pink-50/40 p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900">
-                      Generate Success Story
+                      Success Story
                     </h3>
                     <p className="mt-0.5 text-xs text-gray-500">
-                      Auto-formatted text ready to paste into your CMS.
+                      Compiled from the fields above. Copy and paste into your CMS.
                     </p>
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={handleCopy}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3.5 py-2 text-sm font-medium text-white shadow-md shadow-violet-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
                   >
                     {copied ? (
                       <>
@@ -116,7 +167,7 @@ export function ProjectDetailModal({
                     )}
                   </motion.button>
                 </div>
-                <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-[#E5E7EB] bg-white p-4 font-sans text-sm leading-relaxed text-gray-700">
+                <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-violet-100 bg-white p-4 font-sans text-sm leading-relaxed text-gray-700">
                   {buildSuccessStory(project)}
                 </pre>
               </div>
