@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -7,6 +8,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Provider } from "react-redux";
+import { useEffect } from "react";
+import { store } from "@/store";
+import { useAppSelector } from "@/store/hooks";
+import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 
@@ -73,22 +79,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
-      { name: "description", content: "Project Compass is a web application for managing projects and generating success stories." },
+      {
+        name: "description",
+        content:
+          "Project Compass is a web application for managing projects and generating success stories.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Project Compass is a web application for managing projects and generating success stories." },
+      {
+        property: "og:description",
+        content:
+          "Project Compass is a web application for managing projects and generating success stories.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Project Compass is a web application for managing projects and generating success stories." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/69dff7a8-dca1-474f-a6ed-94b8cb93f1ce/id-preview-02b1fe29--8785d5f8-1a3b-4923-9f9c-637a758fc3f2.lovable.app-1778484082249.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/69dff7a8-dca1-474f-a6ed-94b8cb93f1ce/id-preview-02b1fe29--8785d5f8-1a3b-4923-9f9c-637a758fc3f2.lovable.app-1778484082249.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Project Compass is a web application for managing projects and generating success stories.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/69dff7a8-dca1-474f-a6ed-94b8cb93f1ce/id-preview-02b1fe29--8785d5f8-1a3b-4923-9f9c-637a758fc3f2.lovable.app-1778484082249.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/69dff7a8-dca1-474f-a6ed-94b8cb93f1ce/id-preview-02b1fe29--8785d5f8-1a3b-4923-9f9c-637a758fc3f2.lovable.app-1778484082249.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
     ],
   }),
@@ -112,12 +141,32 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ThemeInitializer() {
+  const mode = useAppSelector((state) => state.theme.mode);
+
+  useEffect(() => {
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [mode]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-    </QueryClientProvider>
+    <ClerkProvider>
+      <Provider store={store}>
+        <ThemeInitializer />
+        <QueryClientProvider client={queryClient}>
+          <Outlet />
+        </QueryClientProvider>
+        <Toaster richColors position="top-right" />
+      </Provider>
+    </ClerkProvider>
   );
 }

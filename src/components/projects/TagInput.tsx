@@ -1,5 +1,4 @@
 import { useState, type KeyboardEvent } from "react";
-import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
 export function TagInput({
@@ -42,12 +41,9 @@ export function TagInput({
       </label>
       <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 focus-within:border-gray-400">
         {value.map((tag) => (
-          <motion.span
+          <span
             key={tag}
-            layout
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-700"
+            className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-700 animate-in fade-in duration-150"
           >
             {tag}
             <button
@@ -57,7 +53,7 @@ export function TagInput({
             >
               <X className="h-3 w-3" />
             </button>
-          </motion.span>
+          </span>
         ))}
         <input
           value={draft}

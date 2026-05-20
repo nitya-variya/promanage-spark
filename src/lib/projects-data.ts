@@ -46,8 +46,7 @@ export const initialProjects: Project[] = [
     techStack: ["React", "Node.js", "AWS", "FHIR"],
     services: ["Discovery", "HIPAA Compliance", "Web App Development"],
     deliverables: ["Patient Portal", "Appointment System", "Secure Messaging"],
-    challenges:
-      "Patients struggled to access records across three disconnected hospital systems.",
+    challenges: "Patients struggled to access records across three disconnected hospital systems.",
     conclusion:
       "Unified portal reduced support calls by 52% and improved patient satisfaction scores from 6.4 to 8.9.",
     timeDuration: "8 months",
@@ -65,10 +64,8 @@ export const initialProjects: Project[] = [
     techStack: ["React Native", "GraphQL", "MongoDB", "Mapbox"],
     services: ["Mobile Development", "Realtime Backend", "Geospatial Mapping"],
     deliverables: ["Driver App", "Dispatcher Console", "Live ETA Engine"],
-    challenges:
-      "Manual radio dispatch caused 22% of deliveries to miss promised time windows.",
-    conclusion:
-      "Realtime tracking and smart routing brought on-time delivery rate to 96%.",
+    challenges: "Manual radio dispatch caused 22% of deliveries to miss promised time windows.",
+    conclusion: "Realtime tracking and smart routing brought on-time delivery rate to 96%.",
     timeDuration: "6 months",
     country: "Germany",
     industry: "Logistics",
@@ -84,8 +81,7 @@ export const initialProjects: Project[] = [
     techStack: ["Vue 3", "Nuxt", "Kotlin", "Azure"],
     services: ["KYC Workflow Design", "Identity Verification", "Frontend Engineering"],
     deliverables: ["Onboarding Flow", "Document Capture", "Risk Scoring UI"],
-    challenges:
-      "New account sign-up took 14 minutes with a 47% abandonment rate.",
+    challenges: "New account sign-up took 14 minutes with a 47% abandonment rate.",
     conclusion:
       "Streamlined to 4 minutes end-to-end, doubling completed applications month over month.",
     timeDuration: "4 months",
@@ -103,10 +99,8 @@ export const initialProjects: Project[] = [
     techStack: ["Next.js", "Python", "OpenAI", "Supabase"],
     services: ["AI Strategy", "LLM Integration", "Teacher Dashboards"],
     deliverables: ["Insights Dashboard", "Lesson Recommender", "Parent Reports"],
-    challenges:
-      "Teachers spent 6+ hours weekly compiling student progress reports manually.",
-    conclusion:
-      "AI-generated insights reclaim 5 hours per teacher each week with 94% accuracy.",
+    challenges: "Teachers spent 6+ hours weekly compiling student progress reports manually.",
+    conclusion: "AI-generated insights reclaim 5 hours per teacher each week with 94% accuracy.",
     timeDuration: "3 months",
     country: "Australia",
     industry: "Education",
@@ -122,8 +116,7 @@ export const initialProjects: Project[] = [
     techStack: ["Astro", "Tailwind CSS", "Sanity", "Algolia"],
     services: ["Content Strategy", "Search UX", "Web Development"],
     deliverables: ["Marketing Site", "Listing Search", "Agent CMS"],
-    challenges:
-      "Outdated site failed to rank for high-intent property searches in target metros.",
+    challenges: "Outdated site failed to rank for high-intent property searches in target metros.",
     conclusion:
       "New SEO-first build tripled organic traffic in 90 days and added 1,200 qualified leads.",
     timeDuration: "5 months",
@@ -141,8 +134,7 @@ export const initialProjects: Project[] = [
     techStack: ["React", "Go", "Kubernetes", "TimescaleDB"],
     services: ["IoT Architecture", "Realtime Analytics", "Operator UX"],
     deliverables: ["Operator Console", "Anomaly Alerts", "Reporting Suite"],
-    challenges:
-      "Operators reacted to grid anomalies hours after they occurred, risking outages.",
+    challenges: "Operators reacted to grid anomalies hours after they occurred, risking outages.",
     conclusion:
       "Sub-second anomaly detection prevented an estimated $2.3M in downtime within the first quarter.",
     timeDuration: "9 months",
@@ -160,10 +152,8 @@ export const initialProjects: Project[] = [
     techStack: ["Shopify Hydrogen", "Remix", "Klaviyo"],
     services: ["Brand Refresh", "Subscription Commerce", "Lifecycle Marketing"],
     deliverables: ["Subscription Flow", "Customer Portal", "Email Automation"],
-    challenges:
-      "High churn after the second delivery and limited personalization options.",
-    conclusion:
-      "Personalized boxes and lifecycle emails cut churn by 31% and grew LTV by 2.4x.",
+    challenges: "High churn after the second delivery and limited personalization options.",
+    conclusion: "Personalized boxes and lifecycle emails cut churn by 31% and grew LTV by 2.4x.",
     timeDuration: "3 months",
     country: "France",
     industry: "Lifestyle",

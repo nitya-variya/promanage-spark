@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Building2,
@@ -8,6 +9,7 @@ import {
   Globe,
   Layers,
   Link as LinkIcon,
+  Pencil,
   Sparkles,
   Target,
   X,
@@ -45,10 +47,14 @@ export function NewProjectForm({
   open,
   onClose,
   onCreate,
+  onUpdate,
+  editProject,
 }: {
   open: boolean;
   onClose: () => void;
   onCreate: (p: Project) => void;
+  onUpdate?: (p: Project) => void;
+  editProject?: Project | null;
 }) {
   const [client, setClient] = useState("");
   const [projectName, setProjectName] = useState("");
@@ -62,6 +68,28 @@ export function NewProjectForm({
   const [techStack, setTechStack] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
   const [deliverables, setDeliverables] = useState<string[]>([]);
+
+  const isEditMode = !!editProject;
+
+  // Pre-fill fields when editProject changes
+  useEffect(() => {
+    if (editProject) {
+      setClient(editProject.client);
+      setProjectName(editProject.projectName);
+      setChallenges(editProject.challenges);
+      setConclusion(editProject.conclusion);
+      setTimeDuration(editProject.timeDuration);
+      setCountry(editProject.country);
+      setIndustry(editProject.industry);
+      setDomain(editProject.domain);
+      setProjectLink(editProject.projectLink);
+      setTechStack([...editProject.techStack]);
+      setServices([...editProject.services]);
+      setDeliverables([...editProject.deliverables]);
+    } else {
+      reset();
+    }
+  }, [editProject]);
 
   const reset = () => {
     setClient("");
@@ -92,11 +120,12 @@ export function NewProjectForm({
     )
       return;
 
-    onCreate({
-      id: crypto.randomUUID(),
+    const name = projectName.trim();
+    const projectData: Project = {
+      id: isEditMode ? editProject.id : crypto.randomUUID(),
       client: client.trim(),
-      projectName: projectName.trim(),
-      status: "Completed",
+      projectName: name,
+      status: isEditMode ? editProject.status : "Completed",
       techStack,
       services,
       deliverables,
@@ -107,8 +136,21 @@ export function NewProjectForm({
       industry: industry.trim(),
       domain: domain.trim(),
       projectLink: projectLink.trim(),
-      successStoryReady: true,
-    });
+      successStoryReady: isEditMode ? editProject.successStoryReady : true,
+    };
+
+    if (isEditMode && onUpdate) {
+      onUpdate(projectData);
+      toast.success(`Project "${name}" updated successfully!`, {
+        description: "Your project has been updated.",
+      });
+    } else {
+      onCreate(projectData);
+      toast.success(`Project "${name}" created successfully!`, {
+        description: "Your new project has been added to the list.",
+      });
+    }
+
     reset();
     onClose();
   };
@@ -135,13 +177,19 @@ export function NewProjectForm({
             <div className="flex items-start justify-between">
               <div>
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-100 to-pink-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
-                  <Sparkles className="h-3 w-3" /> New entry
+                  {isEditMode ? (
+                    <><Pencil className="h-3 w-3" /> Edit entry</>
+                  ) : (
+                    <><Sparkles className="h-3 w-3" /> New entry</>
+                  )}
                 </div>
                 <h2 className="mt-2 text-xl font-semibold text-gray-900">
-                  Add a project
+                  {isEditMode ? "Edit project" : "Add a project"}
                 </h2>
                 <p className="mt-0.5 text-sm text-gray-500">
-                  Fill in the success story details. Fields marked with{" "}
+                  {isEditMode
+                    ? "Update the project details below. Fields marked with "
+                    : "Fill in the success story details. Fields marked with "}
                   <span className="text-rose-500">*</span> are required.
                 </p>
               </div>
@@ -276,7 +324,7 @@ export function NewProjectForm({
                 type="submit"
                 className="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-violet-500/25 hover:from-violet-700 hover:to-fuchsia-700"
               >
-                Create project
+                {isEditMode ? "Update project" : "Create project"}
               </motion.button>
             </div>
           </motion.form>

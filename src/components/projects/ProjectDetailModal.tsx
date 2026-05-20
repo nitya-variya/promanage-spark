@@ -1,24 +1,13 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Check,
-  Clock,
-  Copy,
-  ExternalLink,
-  Flag,
-  Globe,
-  Layers,
-  X,
-} from "lucide-react";
+import { Check, Clock, Copy, ExternalLink, Flag, Globe, Layers, X } from "lucide-react";
 import { type Project, buildSuccessStory } from "@/lib/projects-data";
 
 function TagSection({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-violet-500">
-        {title}
-      </h4>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-black-500">{title}</h4>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {items.map((it) => (
           <span
@@ -37,12 +26,8 @@ function TextSection({ title, body }: { title: string; body: string }) {
   if (!body) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-violet-500">
-        {title}
-      </h4>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-        {body}
-      </p>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-black-500">{title}</h4>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{body}</p>
     </div>
   );
 }
@@ -144,9 +129,7 @@ export function ProjectDetailModal({
               <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/70 to-pink-50/40 p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      Success Story
-                    </h3>
+                    <h3 className="text-sm font-semibold text-gray-900">Success Story</h3>
                     <p className="mt-0.5 text-xs text-gray-500">
                       Compiled from the fields above. Copy and paste into your CMS.
                     </p>
