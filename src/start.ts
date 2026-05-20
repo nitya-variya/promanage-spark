@@ -10,10 +10,11 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
-    console.error(error);
-    return new Response(renderErrorPage(), {
+    console.error("Caught in errorMiddleware:", error);
+    const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
+    return new Response(`Server Error:\n${errorMessage}`, {
       status: 500,
-      headers: { "content-type": "text/html; charset=utf-8" },
+      headers: { "content-type": "text/plain; charset=utf-8" },
     });
   }
 });
