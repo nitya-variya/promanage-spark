@@ -1,0 +1,4 @@
+const tsrStartManifest = () => ({ routes: { __root__: { filePath: "/home/webosmotic/promanage-spark/src/routes/__root.tsx", children: ["/", "/sign-in/$", "/sign-up/$"], assets: void 0, preloads: ["/assets/index-CS-sA5Jd.js"] }, "/": { filePath: "/home/webosmotic/promanage-spark/src/routes/index.tsx", children: void 0, assets: void 0, preloads: ["/assets/index-CCDvAWHo.js"] }, "/sign-in/$": { filePath: "/home/webosmotic/promanage-spark/src/routes/sign-in.$.tsx", children: void 0, assets: void 0, preloads: ["/assets/sign-in._-DGZ4O7gq.js", "/assets/uiComponents-B_4pYamX.js"] }, "/sign-up/$": { filePath: "/home/webosmotic/promanage-spark/src/routes/sign-up.$.tsx", children: void 0, assets: void 0, preloads: ["/assets/sign-up._-C9Gr7fKM.js", "/assets/uiComponents-B_4pYamX.js"] } }, clientEntry: "/assets/index-CS-sA5Jd.js" });
+export {
+  tsrStartManifest
+};
