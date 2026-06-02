@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownAZ,
@@ -21,28 +23,70 @@ import { NewProjectForm } from "@/components/projects/NewProjectForm";
 import { initialProjects, type Project } from "@/lib/projects-data";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { toggleTheme } from "@/store";
-import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/tanstack-react-start";
+import {
+  SignInButton,
+  SignUpButton,
+  Show,
+  UserButton,
+  useUser,
+  SignOutButton,
+} from "@clerk/tanstack-react-start";
+import Userdetail from "@/components/projects/Userdetail";
 
 const STORAGE_KEY = "promanage-projects";
 
 function loadProjects(): Project[] {
-  if (typeof window === "undefined") return initialProjects;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored) as Project[];
-  } catch {
-    // corrupted data — fall back to defaults
-  }
-  return initialProjects;
+  // We no longer load from localStorage to ensure security.
+  // Data will only be populated from Google Sheets after auth.
+  return [];
 }
 
 /** Simple tween transition — much cheaper than spring physics */
 const cardTransition = { duration: 0.2, ease: "easeOut" } as const;
 
+const fetchSecureProjects = createServerFn({ method: "GET" }).handler(async () => {
+  const { isAuthenticated, userId } = await auth();
+
+  if (!isAuthenticated || !userId) {
+    return { success: false, error: "Unauthorized access: Please log in." };
+  }
+
+  const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+  const apiToken = process.env.INTERNAL_API_TOKEN;
+
+  if (!scriptUrl) return { success: false, error: "Server misconfiguration" };
+
+  try {
+    // SECURE FIX: Fetch the user directly from Clerk's backend using their trusted userId
+    const user = await clerkClient().users.getUser(userId);
+    const userEmail = user.primaryEmailAddress?.emailAddress;
+
+    if (!userEmail) {
+      return {
+        success: false,
+        error: "Unauthorized access: No email associated with your account.",
+      };
+    }
+
+    console.log("Server function securely fetched email for user:", userEmail);
+
+    const url = new URL(scriptUrl);
+    url.searchParams.append("email", userEmail);
+    if (apiToken) url.searchParams.append("token", apiToken);
+
+    const res = await fetch(url.toString());
+    const json = await res.json();
+    return json;
+  } catch (err: any) {
+    console.error("Fetch error:", err);
+    return { success: false, error: `Server Error: ${err.message || "Failed to fetch"}` };
+  }
+});
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Project Vault — Success Story Manager" },
+      { title: "Project Vault - Success Story Manager" },
       {
         name: "description",
         content:
@@ -57,6 +101,8 @@ type SortMode = "default" | "a-z" | "z-a";
 
 function Index() {
   const [projects, setProjects] = useState<Project[]>(loadProjects);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Project | null>(null);
   const [creating, setCreating] = useState(false);
@@ -64,14 +110,102 @@ function Index() {
   const [sortBy, setSortBy] = useState<SortMode>("default");
   const [techFilter, setTechFilter] = useState<string[]>([]);
   const [techDropdownOpen, setTechDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
   const techDropdownRef = useRef<HTMLDivElement>(null);
   const themeMode = useAppSelector((state) => state.theme.mode);
   const dispatch = useAppDispatch();
+  const { user, isLoaded, isSignedIn } = useUser();
 
   // Sync projects to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
   }, [projects]);
+
+  // Fetch from Google Apps Script if URL is provided
+  useEffect(() => {
+    // Wait until clerk auth is loaded and user is signed in to fetch private data
+    if (!isLoaded || !isSignedIn || !user) return;
+
+    const fetchFromSheet = async () => {
+      try {
+        // No longer sending email from the client to prevent spoofing
+        const json = await fetchSecureProjects();
+
+        // Handle the wrapped json response from Apps Script
+        const data = json.success !== undefined ? json.data : json;
+
+        if (json.success === false) {
+          console.error("Unauthorized access to sheet data:", json.error);
+          setAuthError(json.error);
+          setIsInitialLoading(false);
+          return;
+        }
+
+        setAuthError(null);
+
+        if (Array.isArray(data) && data.length > 0) {
+          const formattedData = data.map((item: any, index: number) => {
+            const parseArray = (val: any) => {
+              if (Array.isArray(val)) return val;
+              if (typeof val === "string")
+                return val
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+              return [];
+            };
+
+            return {
+              id: item.id || `sheet-${index}`,
+              // Map Responsible PM to client since the UI expects a client field
+              client: item["Responsible PM"] || item.client || item.Client || "Internal",
+              projectName: item["Project name"] || item.projectName || item["Project Name"] || "",
+              status:
+                item["Approved By Management"]?.toString().toLowerCase() === "yes"
+                  ? "Completed"
+                  : "In Progress",
+              techStack: parseArray(item["TechStack"] || item.techStack || item["Tech Stack"]),
+              services: parseArray(item["Services"] || item.services),
+              deliverables: parseArray(
+                item["Key Features Delivered (Short Bullet Points)"] ||
+                  item.deliverables ||
+                  item.Deliverables,
+              ),
+              challenges:
+                item["Project Goal / Objective"] || item.challenges || item.Challenges || "",
+              conclusion:
+                item["StakeHolders/ Target Users"] || item.conclusion || item.Conclusion || "",
+              timeDuration: item.timeDuration || item["Time Duration"] || "",
+              country: item["Country"] || item.country || "",
+              industry: item["Domain / Industry"] || item.industry || item.Industry || "",
+              domain: item["Domain / Industry"] || item.domain || item.Domain || "",
+              projectLink:
+                item["Project Links (Staging / Prod)"] ||
+                item.projectLink ||
+                item["Project Link"] ||
+                "",
+              successStoryReady:
+                item["should focus: yes or no"]?.toString().toLowerCase().includes("yes") ||
+                item.successStoryReady === "TRUE" ||
+                item.successStoryReady === true,
+            };
+          });
+          setProjects(formattedData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch from Google Sheets", err);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    fetchFromSheet();
+
+    // Polling every 5 seconds for live sync
+    const interval = setInterval(fetchFromSheet, 5000);
+    return () => clearInterval(interval);
+  }, [isLoaded, isSignedIn, user]);
 
   // Close tech dropdown on outside click
   useEffect(() => {
@@ -90,6 +224,11 @@ function Index() {
     projects.forEach((p) => p.techStack.forEach((t) => set.add(t)));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [projects]);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, sortBy, techFilter]);
 
   const filtered = useMemo(() => {
     let result = projects;
@@ -156,8 +295,66 @@ function Index() {
     setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   }, []);
 
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-600"></div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black p-4">
+        <div className="w-full max-w-md rounded-3xl border border-violet-100 bg-white p-8 text-center shadow-2xl shadow-violet-500/10 dark:border-violet-500/20 dark:bg-gray-900 sm:p-10">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-violet-100 text-violet-600 dark:bg-violet-900/50 dark:text-violet-300">
+            <LayoutGrid className="h-8 w-8" />
+          </div>
+          <h1 className="mb-3 bg-gradient-to-r from-violet-700 via-fuchsia-600 to-rose-500 bg-clip-text text-3xl font-bold text-transparent dark:from-violet-400 dark:via-fuchsia-400 dark:to-rose-400">
+            Project Vault
+          </h1>
+          <p className="mb-8 text-sm text-gray-600 dark:text-gray-400">
+            Secure internal dashboard. Please log in with your authorized email to view the
+            portfolio.
+          </p>
+          <SignInButton mode="modal">
+            <button className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3.5 text-sm font-medium text-white shadow-lg shadow-violet-500/30 transition-transform duration-150 hover:from-violet-700 hover:to-fuchsia-700 active:scale-[0.97]">
+              Secure Login
+            </button>
+          </SignInButton>
+        </div>
+      </main>
+    );
+  }
+
+  if (authError) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black p-4">
+        <div className="w-full max-w-md rounded-3xl border border-red-200 bg-white/95 p-8 text-center shadow-2xl shadow-red-500/20 backdrop-blur-xl dark:border-red-900/50 dark:bg-gray-900/95 sm:p-10">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400">
+            <X className="h-8 w-8" />
+          </div>
+          <h1 className="mb-3 text-3xl font-bold text-red-600 dark:text-red-400">Access Denied</h1>
+          <p className="mb-8 text-sm text-gray-700 dark:text-gray-300">{authError}</p>
+          <p className="mb-8 text-xs text-gray-500 dark:text-gray-500">
+            You are currently logged in as <br />
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
+              {user?.primaryEmailAddress?.emailAddress}
+            </span>
+          </p>
+          <SignOutButton>
+            <button className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-medium text-white shadow-lg transition-transform duration-150 hover:bg-black active:scale-[0.97] dark:bg-white dark:text-black dark:hover:bg-gray-200">
+              Sign out & switch account
+            </button>
+          </SignOutButton>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen">
+      <Userdetail />
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
         <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -168,24 +365,12 @@ function Index() {
             <h1 className="mt-4 bg-gradient-to-r from-violet-700 via-fuchsia-600 to-rose-500 dark:from-violet-400 dark:via-fuchsia-400 dark:to-rose-400 bg-clip-text text-3xl font-semibold tracking-tight text-transparent sm:text-4xl">
               Projects & Success Stories
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
               Replace the spreadsheet. Find any project in seconds and craft polished copy for your
               website CMS.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button className="inline-flex items-center gap-1.5 self-start rounded-xl border border-violet-200 dark:border-violet-500/30 bg-white/80 dark:bg-gray-900/60 px-4 py-2.5 text-sm font-medium text-violet-700 dark:text-violet-300 shadow-sm transition-all duration-150 hover:border-violet-400 dark:hover:border-violet-400 hover:shadow-md active:scale-[0.97] cursor-pointer">
-                  Sign in
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="inline-flex items-center gap-1.5 self-start rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/30 transition-transform duration-150 hover:from-violet-700 hover:to-fuchsia-700 active:scale-[0.97] cursor-pointer">
-                  Sign up
-                </button>
-              </SignUpButton>
-            </Show>
             <Show when="signed-in">
               <button
                 className="inline-flex items-center gap-1.5 self-start rounded-xl bg-black dark:bg-white px-4 py-2.5 text-sm font-medium text-white dark:text-black shadow-lg shadow-black-500/30 transition-transform duration-150 hover:bg-gray-800 dark:hover:bg-gray-200 active:scale-[0.97] cursor-pointer"
@@ -346,43 +531,115 @@ function Index() {
           </div>
         </div>
 
-        {/* Removed `layout` from grid — eliminates expensive FLIP calculations on every render */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((p) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={cardTransition}
-              >
-                <ProjectCard
-                  project={p}
-                  onOpen={handleOpen}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {filtered.length === 0 && (
-          <div className="mt-10 rounded-2xl border border-dashed border-violet-200 dark:border-violet-500/30 bg-white/60 dark:bg-black/20 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 dark:from-violet-900/50 dark:to-pink-900/50 text-violet-600 dark:text-violet-300">
-              <Sparkles className="h-5 w-5" />
+        <div className="relative mt-6 min-h-[400px]">
+          {/* OVERLAY FOR LOADING */}
+          {isInitialLoading && (
+            <div className="absolute inset-0 z-20 flex flex-col items-start justify-start pt-10 sm:items-center sm:pt-20">
+              <div className="flex flex-col items-center rounded-3xl bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:bg-gray-900/90 border border-violet-100 dark:border-violet-900/50">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600 dark:border-violet-900/50 dark:border-t-violet-400"></div>
+                <p className="mt-4 text-sm font-medium text-gray-700 dark:text-gray-300 animate-pulse">
+                  Verifying secure access...
+                </p>
+              </div>
             </div>
-            <p className="mt-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-              {projects.length === 0 ? "No projects yet" : "No projects match your search"}
-            </p>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {projects.length === 0
-                ? 'Click "New project" to add your first success story.'
-                : "Try a different keyword."}
-            </p>
+          )}
+
+          {/* MAIN CONTENT AREA */}
+          <div
+            className={
+              isInitialLoading
+                ? "select-none opacity-30 blur-md pointer-events-none transition-all duration-500"
+                : "transition-all duration-500"
+            }
+          >
+            {isInitialLoading ? (
+              // FAKE SKELETON GRID TO BLUR
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-80 rounded-2xl bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col gap-4"
+                  >
+                    <div className="h-6 w-3/4 rounded-md bg-gray-200 dark:bg-gray-800"></div>
+                    <div className="h-4 w-1/2 rounded-md bg-gray-100 dark:bg-gray-800/50"></div>
+                    <div className="mt-auto flex gap-2">
+                      <div className="h-6 w-16 rounded-full bg-gray-200 dark:bg-gray-800"></div>
+                      <div className="h-6 w-16 rounded-full bg-gray-200 dark:bg-gray-800"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <AnimatePresence mode="popLayout">
+                    {filtered
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((p) => (
+                        <motion.div
+                          key={p.id}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={cardTransition}
+                        >
+                          <ProjectCard
+                            project={p}
+                            onOpen={handleOpen}
+                            onDelete={handleDelete}
+                            onEdit={handleEdit}
+                          />
+                        </motion.div>
+                      ))}
+                  </AnimatePresence>
+                </div>
+
+                {/* Pagination Controls */}
+                {filtered.length > itemsPerPage && (
+                  <div className="mt-10 flex items-center justify-center gap-4">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex items-center cursor-pointer gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-violet-200 dark:border-violet-500/30 bg-white dark:bg-gray-900 text-violet-700 dark:text-violet-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-colors shadow-sm"
+                    >
+                      Previous
+                    </button>
+                    <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Page {currentPage} of {Math.ceil(filtered.length / itemsPerPage)}
+                    </div>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((p) =>
+                          Math.min(Math.ceil(filtered.length / itemsPerPage), p + 1),
+                        )
+                      }
+                      disabled={currentPage === Math.ceil(filtered.length / itemsPerPage)}
+                      className="inline-flex cursor-pointer items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-violet-200 dark:border-violet-500/30 bg-white dark:bg-gray-900 text-violet-700 dark:text-violet-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-colors shadow-sm"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+
+                {filtered.length === 0 && (
+                  <div className="mt-10 rounded-2xl border border-dashed border-violet-200 dark:border-violet-500/30 bg-white/60 dark:bg-black/20 py-16 text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 dark:from-violet-900/50 dark:to-pink-900/50 text-violet-600 dark:text-violet-300">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <p className="mt-4 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {projects.length === 0 ? "No projects yet" : "No projects match your search"}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {projects.length === 0
+                        ? "Check your Google Sheet."
+                        : "Try a different keyword."}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <ProjectDetailModal project={selected} onClose={handleCloseDetail} />

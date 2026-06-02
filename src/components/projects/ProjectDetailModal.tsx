@@ -106,7 +106,7 @@ export function ProjectDetailModal({
               </div>
               <button
                 onClick={onClose}
-                className="rounded-full p-1.5 text-gray-400 transition hover:bg-violet-100 hover:text-violet-700"
+                className="cursor-pointer rounded-full p-1.5 text-gray-400 transition hover:bg-violet-100 hover:text-violet-700"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -137,7 +137,7 @@ export function ProjectDetailModal({
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={handleCopy}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3.5 py-2 text-sm font-medium text-white shadow-md shadow-violet-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3.5 py-2 text-sm font-medium text-white shadow-md shadow-violet-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
                   >
                     {copied ? (
                       <>
