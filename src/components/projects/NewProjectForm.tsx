@@ -41,7 +41,7 @@ function Field({
 }
 
 const inputCls =
-  "w-full rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100";
+  "w-full rounded-xl border border-violet-100 dark:border-violet-500/30 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:focus:ring-violet-900/50 placeholder:text-gray-400 dark:placeholder:text-gray-500";
 
 export function NewProjectForm({
   open,
@@ -172,21 +172,21 @@ export function NewProjectForm({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 20, opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white p-7 shadow-2xl sm:rounded-2xl"
+            className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white dark:bg-gray-900 p-7 shadow-2xl sm:rounded-2xl"
           >
             <div className="flex items-start justify-between">
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-100 to-pink-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-100 to-pink-100 dark:from-violet-900/50 dark:to-pink-900/50 px-2.5 py-0.5 text-xs font-medium text-violet-700 dark:text-violet-300">
                   {isEditMode ? (
                     <><Pencil className="h-3 w-3" /> Edit entry</>
                   ) : (
                     <><Sparkles className="h-3 w-3" /> New entry</>
                   )}
                 </div>
-                <h2 className="mt-2 text-xl font-semibold text-gray-900">
+                <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
                   {isEditMode ? "Edit project" : "Add a project"}
                 </h2>
-                <p className="mt-0.5 text-sm text-gray-500">
+                <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                   {isEditMode
                     ? "Update the project details below. Fields marked with "
                     : "Fill in the success story details. Fields marked with "}
@@ -196,7 +196,7 @@ export function NewProjectForm({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full p-1.5 text-gray-400 hover:bg-violet-50 hover:text-violet-700"
+                className="rounded-full p-1.5 text-gray-400 dark:text-gray-500 hover:bg-violet-50 dark:hover:bg-violet-900/40 hover:text-violet-700 dark:hover:text-violet-300"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -315,7 +315,7 @@ export function NewProjectForm({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-violet-100 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-violet-50"
+                className="rounded-lg border border-violet-100 dark:border-violet-500/30 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-900/30"
               >
                 Cancel
               </button>

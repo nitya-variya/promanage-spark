@@ -36,20 +36,20 @@ export function TagInput({
 
   return (
     <div>
-      <label className="text-xs font-medium uppercase tracking-wider text-gray-500">
+      <label className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
         {label}
       </label>
-      <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 focus-within:border-gray-400">
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-[#E5E7EB] dark:border-violet-500/30 bg-white dark:bg-gray-800 px-3 py-2 focus-within:border-gray-400 dark:focus-within:border-violet-400">
         {value.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-700 animate-in fade-in duration-150"
+            className="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-sm text-gray-700 dark:text-gray-300 animate-in fade-in duration-150"
           >
             {tag}
             <button
               type="button"
               onClick={() => onChange(value.filter((t) => t !== tag))}
-              className="text-gray-400 hover:text-gray-700"
+              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               <X className="h-3 w-3" />
             </button>
@@ -61,7 +61,7 @@ export function TagInput({
           onKeyDown={onKey}
           onBlur={commit}
           placeholder={value.length ? "" : placeholder}
-          className="min-w-[8rem] flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-gray-400"
+          className="min-w-[8rem] flex-1 bg-transparent py-1 text-sm text-gray-900 dark:text-gray-100 outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
         />
       </div>
     </div>

@@ -7,12 +7,12 @@ function TagSection({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-black-500">{title}</h4>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">{title}</h4>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {items.map((it) => (
           <span
             key={it}
-            className="rounded-md bg-violet-50 px-2.5 py-1 text-sm text-violet-700 ring-1 ring-inset ring-violet-100"
+            className="rounded-md bg-violet-50 dark:bg-violet-900/30 px-2.5 py-1 text-sm text-violet-700 dark:text-violet-300 ring-1 ring-inset ring-violet-100 dark:ring-violet-500/30"
           >
             {it}
           </span>
@@ -26,8 +26,8 @@ function TextSection({ title, body }: { title: string; body: string }) {
   if (!body) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-black-500">{title}</h4>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{body}</p>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">{title}</h4>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-gray-300">{body}</p>
     </div>
   );
 }
@@ -43,10 +43,10 @@ function MetaPill({
 }) {
   if (!value) return null;
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-violet-50/60 px-3 py-2 text-sm ring-1 ring-violet-100">
-      <Icon className="h-3.5 w-3.5 text-violet-600" />
-      <span className="text-gray-500">{label}:</span>
-      <span className="font-medium text-gray-800">{value}</span>
+    <div className="flex items-center gap-2 rounded-xl bg-violet-50/60 dark:bg-violet-900/20 px-3 py-2 text-sm ring-1 ring-violet-100 dark:ring-violet-500/20">
+      <Icon className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+      <span className="text-gray-500 dark:text-gray-400">{label}:</span>
+      <span className="font-medium text-gray-800 dark:text-gray-200">{value}</span>
     </div>
   );
 }
@@ -82,15 +82,15 @@ export function ProjectDetailModal({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 20, opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-2xl"
+            className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white dark:bg-gray-900 shadow-2xl sm:rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-violet-100 bg-gradient-to-r from-violet-50/80 via-white to-pink-50/60 px-7 py-5 backdrop-blur">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-violet-100 dark:border-violet-500/20 bg-gradient-to-r from-violet-50/80 via-white to-pink-50/60 dark:from-violet-950/80 dark:via-gray-900 dark:to-gray-900/80 px-7 py-5 backdrop-blur">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-violet-600">
                   {project.client}
                 </p>
-                <h2 className="mt-0.5 text-2xl font-semibold text-gray-900">
+                <h2 className="mt-0.5 text-2xl font-semibold text-gray-900 dark:text-gray-100">
                   {project.projectName}
                 </h2>
                 {project.projectLink && (
@@ -106,7 +106,7 @@ export function ProjectDetailModal({
               </div>
               <button
                 onClick={onClose}
-                className="cursor-pointer rounded-full p-1.5 text-gray-400 transition hover:bg-violet-100 hover:text-violet-700"
+                className="cursor-pointer rounded-full p-1.5 text-gray-400 dark:text-gray-500 transition hover:bg-violet-100 dark:hover:bg-violet-900/40 hover:text-violet-700 dark:hover:text-violet-300"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -126,11 +126,11 @@ export function ProjectDetailModal({
               <TagSection title="Deliverables" items={project.deliverables} />
               <TextSection title="Conclusion" body={project.conclusion} />
 
-              <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/70 to-pink-50/40 p-5">
+              <div className="rounded-2xl border border-violet-100 dark:border-violet-500/20 bg-gradient-to-br from-violet-50/70 to-pink-50/40 dark:from-violet-950/40 dark:to-gray-900/40 p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">Success Story</h3>
-                    <p className="mt-0.5 text-xs text-gray-500">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Success Story</h3>
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                       Compiled from the fields above. Copy and paste into your CMS.
                     </p>
                   </div>
@@ -150,7 +150,7 @@ export function ProjectDetailModal({
                     )}
                   </motion.button>
                 </div>
-                <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-violet-100 bg-white p-4 font-sans text-sm leading-relaxed text-gray-700">
+                <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-violet-100 dark:border-violet-500/20 bg-white dark:bg-gray-800 p-4 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                   {buildSuccessStory(project)}
                 </pre>
               </div>
